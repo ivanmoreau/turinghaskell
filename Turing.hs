@@ -1,3 +1,5 @@
+module Turing where
+
 data Direction  = MLeft | MRight | MStay
 type State      = Int
 type Symbol     = Char
@@ -9,6 +11,13 @@ data Machine    = Machine {
     function     :: State -> Symbol -> Smt,
     accept_state :: State
 }
+data MacState   = MacState {
+    state :: State,
+    tape  :: TapeParts
+}
+
+instance Show MacState where
+    show (MacState a (x, y, z)) = x ++ " q_" ++ show a ++ " " ++ [y] ++ z ++ "\n"
 
 moveTape :: TapeParts -> Direction -> TapeParts
 moveTape ([], b, c) MLeft  = ([]      , '□'   , b :  c)
@@ -16,17 +25,18 @@ moveTape (a, b, []) MRight = (a ++ [b], '_'   , []    )
 moveTape (a, b, c)  MLeft  = (init a  , last a, b :  c)
 moveTape (a, b, c)  MRight = (a ++ [b], head c, tail c)
 
-step :: Machine -> TapeParts -> Tape
-step (Machine q0 f qf) (a, b, c)
-    | q0 == qf  = a ++ [b] ++ c
+step :: Machine -> TapeParts -> [MacState] -> [MacState]
+step (Machine q0 f qf) (a, b, c) mac
+    | q0 == qf  = mac ++ [MacState {state = q0, tape = (a, b, c)}]
     | otherwise = let (x, y, z) = f q0 b in
         step (Machine x f qf) (case z of
             MLeft  -> moveTape (a, y, c) MLeft
             MRight -> moveTape (a, y, c) MRight
-            MStay  -> (a, y, c))
+            MStay  -> (a, y, c)) (
+        mac ++ [MacState {state = q0, tape = (a, b, c)}])
 
-run :: Machine -> Tape -> Tape
-run m t = step m ([], head t, tail t)
+run :: Machine -> Tape -> [MacState]
+run m t = step m ([], head t, tail t) []
 
 testMachine :: Machine
 testMachine = Machine {
