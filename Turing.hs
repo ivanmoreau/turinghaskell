@@ -24,15 +24,13 @@ moveTape ([], b, c) MLeft  = ([]      , '_'   , b :  c)
 moveTape (a, b, []) MRight = (a ++ [b], '_'   , []    )
 moveTape (a, b, c)  MLeft  = (init a  , last a, b :  c)
 moveTape (a, b, c)  MRight = (a ++ [b], head c, tail c)
+moveTape x          MStay  = x
 
 step :: Machine -> TapeParts -> [MacState] -> [MacState]
 step (Machine q0 f qf) (a, b, c) mac
     | q0 == qf  = mac ++ [MacState {state = q0, tape = (a, b, c)}]
     | otherwise = let (x, y, z) = f q0 b in
-        step (Machine x f qf) (case z of
-            MLeft  -> moveTape (a, y, c) MLeft
-            MRight -> moveTape (a, y, c) MRight
-            MStay  -> (a, y, c)) (
+        step (Machine x f qf) (moveTape (a, y, c) z) (
         mac ++ [MacState {state = q0, tape = (a, b, c)}])
 
 run :: Machine -> Tape -> [MacState]
