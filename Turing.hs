@@ -20,7 +20,7 @@ instance Show MacState where
     show (MacState a (x, y, z)) = x ++ " q_" ++ show a ++ " " ++ [y] ++ z ++ "\n"
 
 moveTape :: TapeParts -> Direction -> TapeParts
-moveTape ([], b, c) MLeft  = ([]      , '□'   , b :  c)
+moveTape ([], b, c) MLeft  = ([]      , '_'   , b :  c)
 moveTape (a, b, []) MRight = (a ++ [b], '_'   , []    )
 moveTape (a, b, c)  MLeft  = (init a  , last a, b :  c)
 moveTape (a, b, c)  MRight = (a ++ [b], head c, tail c)
